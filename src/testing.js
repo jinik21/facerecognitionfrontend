@@ -62,22 +62,32 @@ class App extends Component{
 
     }})
   }  
+
+  displayFaceBox=(box)=>{
+    console.log(box);
+    return({aox:box});
+  }
+  displayFacelst=(box)=>{
+    this.setState({Box:box});
+    console.log(this.state.Box);
+  }
   calculateFaceLocation = (data)=>{
     const image = document.getElementById('inputimage');
     const width =Number(image.width);
     const height=Number(image.height);
 
-    const Clarifaiface = data.outputs[0].data.regions[0].region_info.bounding_box;
-    return{
-      leftCol:Clarifaiface.left_col*width,
-      topRow:Clarifaiface.top_row*height,
-      rightCol: width -(Clarifaiface.right_col*width),
-      bottomRow:height-(Clarifaiface.bottom_row*height)
-    } 
-
-  }
-  displayFaceBox=(box)=>{
-    this.setState({Box:box});
+    const Clarifaiface = data.outputs[0].data.regions;
+    const lst=[];
+    Clarifaiface.forEach((req,i)=>{
+    const kc=req.region_info.bounding_box;
+    const ab={};
+    ab.leftCol=kc.left_col*width;
+    ab.topRow=kc.top_row*height;
+    ab.rightCol= width -(kc.right_col*width);
+    ab.bottomRow=height-(kc.bottom_row*height);
+    lst.push(this.displayFaceBox(ab));
+    });
+    return lst
   }
 
   onInputChange=(event)=>{
@@ -96,7 +106,7 @@ class App extends Component{
 
   onButtonSubmit=()=>{
     this.setState({imageUrl:this.state.input});
-    fetch('https://fierce-lake-11096.herokuapp.com/imageUrl',{
+    fetch('http://localhost:3000/imageUrl',{
             method:'post',
             headers:{'Content-type':'application/json'},
             body:JSON.stringify({
@@ -106,7 +116,7 @@ class App extends Component{
       .then(response=>response.json())
       .then(response =>{
         if(response){
-          fetch('https://fierce-lake-11096.herokuapp.com/image',{
+          fetch('http://localhost:3000/image',{
             method:'put',
             headers:{'Content-type':'application/json'},
             body:JSON.stringify({
@@ -119,7 +129,7 @@ class App extends Component{
         })
         .catch(console.log)
       }
-        this.displayFaceBox(this.calculateFaceLocation(response))
+        this.displayFacelst(this.calculateFaceLocation(response))
       })
       .catch(err=>console.log(err));
   }
@@ -136,7 +146,7 @@ class App extends Component{
               <ImageLinkForm 
                 onInputChange={this.onInputChange}
                 onButtonSubmit={this.onButtonSubmit} />
-              <FaceRecognition Box={Box} imageUrl={imageUrl} />
+              <FaceRecognition Boxlst={Box} imageUrl={imageUrl} />
           </div>:
           (
             route ==='SignIn'?
